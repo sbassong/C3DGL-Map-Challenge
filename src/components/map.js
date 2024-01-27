@@ -3,6 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './map.css';
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import { getInitialLocations } from '../api.js';
 
 export default function Map(props) {
   const mapContainerRef = useRef();
@@ -31,6 +32,7 @@ export default function Map(props) {
     map.current.addControl(draw, 'top-left');
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
     
+    map.current.on('load', seedMarker)
     map.current.on('draw.create', newDraw);
     map.current.on('draw.delete', newDraw);
     map.current.on('draw.update', newDraw);
@@ -38,6 +40,17 @@ export default function Map(props) {
     function newDraw(e) {
       const data = draw.getAll();
       console.log("data:", data);
+    }
+
+    async function seedMarker() {
+      const initialLocations = await getInitialLocations();
+
+      initialLocations?.forEach((location) => {
+        const marker = new maplibregl.Marker()
+          .setLngLat([location.lng, location.lat])
+          .addTo(map.current);
+      });
+      map.current.setZoom(3);
     }
   
     return () => {
