@@ -8,8 +8,8 @@ const Api = Axios.create({ baseURL: BASE_URL });
 
 export const getInitialLocations = async() => {
   try {
-    const res = await Api.get('/locations')
-    return res.data.locations
+    const res = await Api.get('/locations');
+    return res.data.locations;
   } catch (error) {
     throw error
   }
