@@ -1,3 +1,4 @@
+
 import Axios from 'axios';
 
 export const BASE_URL = process.env.NODE_ENV === 'production'
@@ -10,6 +11,15 @@ export const getInitialLocations = async() => {
   try {
     const res = await Api.get('/locations');
     return res.data.locations;
+  } catch (error) {
+    throw error
+  }
+};
+
+export const validateCoordinates = async(coordObj) => {
+  try {
+    const res = await Api.post("/validate", coordObj);
+    return res.data;
   } catch (error) {
     throw error
   }
