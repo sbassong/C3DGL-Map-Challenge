@@ -34,6 +34,29 @@ app.locals.locations = initialLocations;
 
 app.get('/locations', (req, res) => res.send({ locations: app.locals.locations }));
 
+// validate coordinates and name
+app.post('/validate', (req, res) => {
+  try {
+    const { lng, lat, name } = req.body;
+    const errors = [];
+    
+    // Number.isFinite rejects non-finite or non-number values
+    const isLngValid = () => Number.isFinite(lng) && Math.abs(lng) <= 180; // values should be floats between -180 and 180
+    const isLatValid = () => Number.isFinite(lat) && Math.abs(lat) <= 90; // values should be floats between -90 and 90
+
+    if (isLatValid() && isLngValid() && name) {
+      res.send({payload: {lng, lat, name}, status: 201});
+    } else {
+      if (!isLngValid()) errors.push("Invalid longitude. Value should be between -180 and 180");
+      if (!isLatValid()) errors.push("Invalid latitude. Value should be between -90 and 90");
+      if (!name || typeof name !== "string") errors.push("Invalid or missing location name");
+      res.send({errors, status: 406});
+    }
+  } catch (error) {
+    throw error
+  }
+});
+
 app.use(express.static(path.resolve(__dirname, '..', 'build')));
 
 app.get('/', (req, res) => {
