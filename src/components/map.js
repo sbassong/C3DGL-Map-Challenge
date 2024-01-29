@@ -102,7 +102,7 @@ export default function Map(props) {
     });
 
     map.current.addControl(draw, 'top-left');
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-left');
+    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
     map.current.on('draw.create', newDraw);
     map.current.on('draw.delete', newDraw);
