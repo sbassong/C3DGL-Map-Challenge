@@ -44,18 +44,19 @@ app.post('/validate', (req, res) => {
     const isLngValid = isFinite(lng) && Math.abs(lng) <= 180; // values should be floats between -180 and 180
     const isLatValid = isFinite(lat) && Math.abs(lat) <= 90; // values should be floats between -90 and 90
 
+    console.log(lng, lat, name)
     console.log(isLngValid, isLatValid, name)
 
     if (isLatValid && isLngValid && name) {
       res.send({payload: {lng, lat, name}, status: 201});
     } else {
-      if (!isLngValid) errors.push("Invalid longitude. Value should be between -180 and 180. ")
-      if (!isLatValid) errors.push("Invalid latitude. Value should be between -90 and 90. ")
+      if (!isLngValid) errors.push("Invalid longitude. Value should be between -180 and 180")
+      if (!isLatValid) errors.push("Invalid latitude. Value should be between -90 and 90")
       if (!name || typeof name !== "string") errors.push("Invalid or missing location name")
       res.send({errors, status: 406});
     }
   } catch (error) {
-    throw error;
+    throw error
   }
 });
 

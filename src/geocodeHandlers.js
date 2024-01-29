@@ -1,7 +1,7 @@
 export const handleForwardGeocode = async (config) => {
-    // for handling both reverse and forward
 
-    // backend should check do this, while validating the values
+
+    // after validating the lng and lat through backend
         // get form values
         // pass name as config query, and set proximity object to be lng and lat: {lat, lng}
         // that way we can use forward geocoding of name/place and choose closest feature. prob features[0]

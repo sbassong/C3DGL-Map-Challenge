@@ -8,8 +8,6 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { getInitialLocations, validateCoordinates } from '../api.js';
 import { handleForwardGeocode, handleReverseGeocode } from '../geocodeHandlers.js';
 
-const initialFormValues = { lng: 'null', lat: 'null', name: '' }; // initial state of form on map load
-
 export default function Map(props) {
   const mapContainerRef = useRef();
   const map = useRef(null);
@@ -18,36 +16,50 @@ export default function Map(props) {
   const [lat] = useState(props.lat || 39.742043);
   const [style] = useState('https://devtileserver.concept3d.com/styles/c3d_default_style/style.json');
   const [zoom] = useState(3);
-  const [formValues, setFormValues] = useState(initialFormValues);
+  const [formLng, setFormLng] = useState('');
+  const [formLat, setFormLat] = useState('');
+  const [formName, setFormName] = useState('');
   const [validationErrors, setValidationsErrors] = useState([]);
 
-  const handleFormChange = (e) => setFormValues({ ...formValues, [e.target.name]: e.target.value });
+  const handleLngChange = (e) => setFormLng(e.target.value);
+  const handleLatChange = (e) => setFormLat(e.target.value);
+  const handleNameChange = (e) => setFormName(e.target.value);
   const handleCloseErrors = () => setValidationsErrors([])
 
+  // TODO
+  // 1. name value doesn't seem to be saved for validation
+  // 3. fix validation itself, seems to be an issue with validation clauses 
+  // 2. manage redux state
+
   const handleSubmitForm = async (e) => {
-    handleCloseErrors()
-    e.stopPropagation();
+    handleCloseErrors();
     e.preventDefault();
-    const validation = await validateCoordinates(formValues);
+    console.log(formName)
+    const validation = await validateCoordinates({
+      lng: formLng,
+      lat: formLat,
+      name: formName ? formName : e.target.value
+    });
     console.log(validation)
     if (validation.status === 201) {
-      handleCloseErrors()
       geoCoder.current.setProximity({
-        latitude: parseFloat(validation.payload.lat), 
-        longitude: parseFloat(validation.payload.lng), 
+        latitude: parseFloat(validation.payload?.lat), 
+        longitude: parseFloat(validation.payload?.lng), 
       });
-      // geoCoder.current.query(validation.payload.name);
+      geoCoder.current.query(validation.payload?.name);
     } else if (validation.status === 406) {
       setValidationsErrors(validation.errors);
     }
     return;
   };
 
-  const handleSubmitOnKeypress = async () => {
-    let form = document.querySelector(".marker-form");
-    form?.addEventListener("keypress", (e) => {
-      if (e?.key === "Enter" || e?.charCode === 13) handleSubmitForm(e);
-    });
+  const handleFormKeypressEvent = async () => {
+    let form = document.querySelector("#marker-form");
+    form?.addEventListener("keypress", async (e) => {
+      if (e?.key === "Enter") {
+        await handleSubmitForm(e);
+      } else return
+    }, false);
   };
   
   useEffect(() => {
@@ -80,7 +92,7 @@ export default function Map(props) {
       console.log("data:", data);
     }
 
-    // handles fetching initial locations, creating markers, and adding them to the map
+    // fetches initial locations, creates markers, and adds them to the map
     async function seedInitialMarkers() {
       const initialLocations = await getInitialLocations();
       initialLocations?.forEach((location) => {
@@ -88,7 +100,7 @@ export default function Map(props) {
           .setLngLat([location.lng, location.lat])
           .addTo(map.current);
       });
-    }
+    };
   
     return () => {
       map.current.remove();
@@ -98,17 +110,17 @@ export default function Map(props) {
   // handles setting up a geocoder instance
   useEffect(() => {
     if (geoCoder.current) return
-    console.log('running geocoder setup')
     let GeoApi = { forwardGeocode: (config) => handleForwardGeocode(config) };
 
     const geoCoderOptions = { 
       maplibregl,
-      marker: true,
+      marker: false,
       zoom: 12,
       limit: 1,
       showResultMarkers: false,
       clearAndBlurOnEsc: true,
-      proximity: { latitude: parseFloat(formValues.lat), longitude: parseFloat(formValues.lng) }
+      debounceSearch: 500,
+      proximity: { latitude: parseFloat(formLat), longitude: parseFloat(formLng) }
     };
 
     geoCoder.current = new MaplibreGeocoder(GeoApi, geoCoderOptions);
@@ -116,12 +128,26 @@ export default function Map(props) {
     map.current?.addControl(geoCoder.current);
     let geoDiv = document.querySelector(".maplibregl-ctrl-geocoder");
     geoDiv.style.display = "none";
+
+    // creates a persisting marker on geocoder resolving a result event
+    geoCoder.current.on("result", (e) => {
+      const marker = new maplibregl.Marker()
+        .setLngLat(e.result.center)
+        .addTo(map.current);
+    });
   }, []);
   
+  // sets listener for form submission on "Enter" key
   useEffect(() => {
-    handleSubmitOnKeypress();
-  });
-  // }, []);
+    handleFormKeypressEvent();
+
+    return () => {
+      let form = document.querySelector("#marker-form");
+      form?.removeEventListener("keypress", async (e) => {
+          console.log('removed listener');
+      }, false);
+    }
+  }, []);
 
   return (
     <div className="map-wrap">
@@ -129,7 +155,7 @@ export default function Map(props) {
           src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"/></a>
       <div ref={mapContainerRef} className="map"/>
 
-      <form className='marker-form' >
+      <form id='marker-form' >
         <div className='form-inputs'>
           <label>
             longitude: 
@@ -138,11 +164,10 @@ export default function Map(props) {
               name="lng"
               type="number"
               placeholder='-104.991531'
-              value={formValues.lng}
-              onChange={(e) => handleFormChange(e)}
+              value={formLng}
+              onChange={(e) => handleLngChange(e)}
             />
           </label>
-          <br />
           <label>
             latitude: 
             <input
@@ -150,20 +175,19 @@ export default function Map(props) {
               name="lat"
               type="number"
               placeholder='39.742043'
-              value={formValues.lat}
-              onChange={(e) => handleFormChange(e)} 
+              value={formLat}
+              onChange={(e) => handleLatChange(e)} 
             />
           </label>
           <label>
             name:
             <input
-              id="geocoder-input"
               required
               name="name"
               type="text"
               placeholder='Denver'
-              value={formValues.name}
-              onChange={async (e) => handleFormChange(e)} 
+              value={formName}
+              onChange={(e) => handleNameChange(e)} 
             />
           </label>
         </div>
@@ -171,8 +195,10 @@ export default function Map(props) {
 
       { validationErrors?.length > 0 && 
       <ul className='errors-list'>
-        { validationErrors?.length > 0 && validationErrors?.map((error) => (
-          <li><label>error: </label>{error}</li>
+        { validationErrors?.length > 0 && validationErrors?.map((error, i) => (
+          <li key={`error-${i}`}>
+            <label>error: </label>{error}
+          </li>
         ))}
       </ul>}
       

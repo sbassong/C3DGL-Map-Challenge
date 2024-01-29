@@ -3,7 +3,7 @@
   width: 100%;
   height: calc(100vh - 77px); /* calculate height of the screen minus the heading */
 
-  .marker-form {
+  #marker-form {
     position: absolute;
     top: 10px;
     left: 50px;
