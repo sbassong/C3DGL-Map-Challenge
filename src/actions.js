@@ -1,5 +1,4 @@
 const addMarkerLocation = (location) => {
-  console.log(location)
   return { type: "ADD_LOCATION", payload: location};
 } ;
 
