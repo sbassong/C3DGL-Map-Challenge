@@ -41,8 +41,8 @@ export default function Map(props) {
     setValidationsErrors([]);
     // validates coords in backend
     const validation = await validateCoordinates({
-      lng: parseFloat(formLng).toFixed(6),
-      lat: parseFloat(formLat).toFixed(6),
+      lng: parseFloat(formLng),
+      lat: parseFloat(formLat),
       name: formName,
     });
     // returns a 201 and form values if valid, otherwise, save errors to be displayed
@@ -117,8 +117,8 @@ export default function Map(props) {
       clearAndBlurOnEsc: true,
       debounceSearch: 500,
       proximity: { 
-        latitude: parseFloat(formLat).toFixed(6),
-        longitude: parseFloat(formLng).toFixed(6),
+        latitude: parseFloat(formLat),
+        longitude: parseFloat(formLng),
       }
     };
 
