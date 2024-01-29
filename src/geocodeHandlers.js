@@ -9,7 +9,6 @@ export const handleForwardGeocode = async (config) => {
     // gotta pass the proximity object somewhere before the call.
 
     const features = [];
-    console.log("query ->", config.query)
 
     try {
         const request = `https://nominatim.openstreetmap.org/search?q=${config.query}&format=geojson&polygon_geojson=1&addressdetails=1`;

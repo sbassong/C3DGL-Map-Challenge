@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
 import maplibregl from 'maplibre-gl';
 import MaplibreGeocoder from '@maplibre/maplibre-gl-geocoder';
 import '@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.css';
@@ -7,6 +8,7 @@ import './map.css';
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { getInitialLocations, validateCoordinates } from '../api.js';
 import { handleForwardGeocode, handleReverseGeocode } from '../geocodeHandlers.js';
+import mapActions from '../actions.js';
 
 export default function Map(props) {
   const mapContainerRef = useRef();
@@ -21,21 +23,26 @@ export default function Map(props) {
   const [formName, setFormName] = useState('');
   const [validationErrors, setValidationsErrors] = useState([]);
 
+  // store
+  const storedLocations = useSelector((state) => state.locations);
+  // const storedPolygons = useSelector((state) => state.polygons);
+  const dispatch = useDispatch();
+
+  // form values handlers
   const handleLngChange = (e) => setFormLng(e.target.value);
   const handleLatChange = (e) => setFormLat(e.target.value);
   const handleNameChange = (e) => setFormName(e.target.value);
 
   // TODO
   // 1. figure out how to use lng and lat values in tandem with forward geocoding. 
-  // 2. manage redux state
 
   const handleSubmitForm = async (e) => {
     e.preventDefault();
     setValidationsErrors([]);
     // validates coords in backend
     const validation = await validateCoordinates({
-      lng: parseFloat(formLng),
-      lat: parseFloat(formLat),
+      lng: parseFloat(formLng).toFixed(6),
+      lat: parseFloat(formLat).toFixed(6),
       name: formName,
     });
     // returns a 201 and form values if valid, otherwise, save errors to be displayed
@@ -82,8 +89,7 @@ export default function Map(props) {
 
     map.current.addControl(draw, 'top-left');
     map.current.addControl(new maplibregl.NavigationControl(), 'top-left');
-    
-    map.current.on('load', seedInitialMarkers) // loads markers for initially available locations
+
     map.current.on('draw.create', newDraw);
     map.current.on('draw.delete', newDraw);
     map.current.on('draw.update', newDraw);
@@ -91,16 +97,6 @@ export default function Map(props) {
     function newDraw(e) {
       const data = draw.getAll();
       console.log("data:", data);
-    }
-
-    // fetches initial locations, creates markers, and adds them to the map
-    async function seedInitialMarkers() {
-      const initialLocations = await getInitialLocations();
-      initialLocations?.forEach((location) => {
-        const marker = new maplibregl.Marker()
-          .setLngLat([location.lng, location.lat])
-          .addTo(map.current);
-      });
     };
   
     return () => {
@@ -112,16 +108,18 @@ export default function Map(props) {
   useEffect(() => {
     if (geoCoder.current) return;
     let GeoApi = { forwardGeocode: (config) => handleForwardGeocode(config) };
-
     const geoCoderOptions = { 
       maplibregl,
       marker: false,
-      zoom: 12,
-      limit: 1,
+      zoom: 10,
+      limit: 2,
       showResultMarkers: false,
       clearAndBlurOnEsc: true,
       debounceSearch: 500,
-      proximity: { latitude: parseFloat(formLat), longitude: parseFloat(formLng) }
+      proximity: { 
+        latitude: parseFloat(formLat).toFixed(6),
+        longitude: parseFloat(formLng).toFixed(6),
+      }
     };
 
     geoCoder.current = new MaplibreGeocoder(GeoApi, geoCoderOptions);
@@ -130,11 +128,14 @@ export default function Map(props) {
     let geoDiv = document.querySelector(".maplibregl-ctrl-geocoder");
     geoDiv.style.display = "none";
 
-    // creates a persisting marker on geocoder resolving a result event
+    // once geocoder throws a result, create and store a location obj to redux based on the feature
     geoCoder.current.on("result", (e) => {
-      const marker = new maplibregl.Marker()
-        .setLngLat(e.result.center)
-        .addTo(map.current);
+      const markerToStore = {
+        lng: e.result.center[0].toFixed(6),
+        lat: e.result.center[1].toFixed(6),
+        name: e.result.properties.name,
+      };
+      dispatch(mapActions.addMarkerLocation(markerToStore));
     });
   }, []);
   
@@ -149,6 +150,33 @@ export default function Map(props) {
       }, false);
     }
   }, []);
+
+
+  // handles setting persisting markers on map based on redux store state
+  useEffect(() => {
+    if (storedLocations?.length <= 0) {
+      map.current?.on('load', seedInitialMarkers)
+
+      // fetches initial locations, creates markers, saves them to redux, and adds them to the map
+      async function seedInitialMarkers() {
+        const initialLocations = await getInitialLocations();
+        initialLocations?.forEach((location) => {
+          dispatch(mapActions.addMarkerLocation(location));
+          const marker = new maplibregl.Marker()
+            .setLngLat([location.lng, location.lat])
+            .addTo(map.current);
+        });
+      };
+    } else {
+      // on storedLocations updating, we use the last location entry to set a new marker
+      const marker = new maplibregl.Marker()
+        .setLngLat([
+          storedLocations[storedLocations.length - 1].lng,
+          storedLocations[storedLocations.length - 1].lat
+        ])
+        .addTo(map.current);
+    }
+  }, [storedLocations]);
 
   return (
     <div className="map-wrap">
