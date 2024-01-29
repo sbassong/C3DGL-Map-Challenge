@@ -24,27 +24,25 @@ export default function Map(props) {
   const handleLngChange = (e) => setFormLng(e.target.value);
   const handleLatChange = (e) => setFormLat(e.target.value);
   const handleNameChange = (e) => setFormName(e.target.value);
-  const handleCloseErrors = () => setValidationsErrors([])
 
   // TODO
-  // 1. name value doesn't seem to be saved for validation
-  // 3. fix validation itself, seems to be an issue with validation clauses 
+  // 1. figure out how to use lng and lat values in tandem with forward geocoding. 
   // 2. manage redux state
 
   const handleSubmitForm = async (e) => {
-    handleCloseErrors();
     e.preventDefault();
-    console.log(formName)
+    setValidationsErrors([]);
+    // validates coords in backend
     const validation = await validateCoordinates({
-      lng: formLng,
-      lat: formLat,
-      name: formName ? formName : e.target.value
+      lng: parseFloat(formLng),
+      lat: parseFloat(formLat),
+      name: formName,
     });
-    console.log(validation)
+    // returns a 201 and form values if valid, otherwise, save errors to be displayed
     if (validation.status === 201) {
-      geoCoder.current.setProximity({
-        latitude: parseFloat(validation.payload?.lat), 
-        longitude: parseFloat(validation.payload?.lng), 
+      await geoCoder.current.setProximity({
+        latitude: validation.payload?.lat, 
+        longitude: validation.payload?.lng, 
       });
       geoCoder.current.query(validation.payload?.name);
     } else if (validation.status === 406) {
@@ -53,11 +51,14 @@ export default function Map(props) {
     return;
   };
 
+  // handler for Enter keypress event, will trigger submit button which calls handleFormSubmit
   const handleFormKeypressEvent = async () => {
     let form = document.querySelector("#marker-form");
     form?.addEventListener("keypress", async (e) => {
-      if (e?.key === "Enter") {
-        await handleSubmitForm(e);
+      if (e?.key === "Enter" || e?.charCode === 13) {
+        e.preventDefault();
+        const hiddenSubmitButton = document.querySelector(".hidden-submit-button");
+        hiddenSubmitButton.click();
       } else return
     }, false);
   };
@@ -109,7 +110,7 @@ export default function Map(props) {
 
   // handles setting up a geocoder instance
   useEffect(() => {
-    if (geoCoder.current) return
+    if (geoCoder.current) return;
     let GeoApi = { forwardGeocode: (config) => handleForwardGeocode(config) };
 
     const geoCoderOptions = { 
@@ -137,7 +138,7 @@ export default function Map(props) {
     });
   }, []);
   
-  // sets listener for form submission on "Enter" key
+  // sets listener for form submission on "Enter" keypress event
   useEffect(() => {
     handleFormKeypressEvent();
 
@@ -154,7 +155,6 @@ export default function Map(props) {
       <a href="https://www.maptiler.com" className="watermark"><img
           src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"/></a>
       <div ref={mapContainerRef} className="map"/>
-
       <form id='marker-form' >
         <div className='form-inputs'>
           <label>
@@ -165,7 +165,7 @@ export default function Map(props) {
               type="number"
               placeholder='-104.991531'
               value={formLng}
-              onChange={(e) => handleLngChange(e)}
+              onChange={handleLngChange}
             />
           </label>
           <label>
@@ -176,7 +176,7 @@ export default function Map(props) {
               type="number"
               placeholder='39.742043'
               value={formLat}
-              onChange={(e) => handleLatChange(e)} 
+              onChange={handleLatChange} 
             />
           </label>
           <label>
@@ -187,12 +187,17 @@ export default function Map(props) {
               type="text"
               placeholder='Denver'
               value={formName}
-              onChange={(e) => handleNameChange(e)} 
+              onChange={handleNameChange} 
             />
           </label>
         </div>
+        <button
+          className='hidden-submit-button'
+          style={{display: "none"}}
+          type='submit'
+          onClick={handleSubmitForm} 
+        />
       </form>
-
       { validationErrors?.length > 0 && 
       <ul className='errors-list'>
         { validationErrors?.length > 0 && validationErrors?.map((error, i) => (
@@ -200,8 +205,8 @@ export default function Map(props) {
             <label>error: </label>{error}
           </li>
         ))}
-      </ul>}
-      
+      </ul>
+      }
     </div>
   );
 }
