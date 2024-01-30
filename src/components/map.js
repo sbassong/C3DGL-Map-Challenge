@@ -8,7 +8,6 @@ import { getInitialLocations, validateCoordinates } from '../api.js';
 import mapActions from '../actions.js';
 
 const formInitialState = { lng: '', lat: '', name: ''};
-// helper for generating unique ID for each location/poligon object
 const generateRandomStringID = () => {
   return Math.random().toString(36).substring(2, 10);
 };
@@ -22,8 +21,8 @@ export default function Map(props) {
   const [zoom] = useState(3);
   const [formValues, setFormValues] = useState(formInitialState);
   const [validationErrors, setValidationsErrors] = useState([]);
+  const [localPolygons, setLocalpolygons] = useState(JSON.parse(localStorage.getItem("C3DGL-polygons")));
 
-  // store
   // const storedLocations = useSelector((state) => state.locations);
   // const storedPolygons = useSelector((state) => state.polygons);
   const dispatch = useDispatch();
@@ -32,8 +31,7 @@ export default function Map(props) {
     dispatch(mapActions.addMarkerLocation(locationObj));
     const popup = new maplibregl.Popup()
       .setMaxWidth("fit-content")
-      .setHTML(`<h4>${locationObj.name}</h4>`)
-
+      .setHTML(`<h4>${locationObj.name}</h4>`);
     const marker = new maplibregl.Marker()
       .setLngLat([locationObj.lng, locationObj.lat])
       .setPopup(popup) // adds popup
@@ -44,9 +42,8 @@ export default function Map(props) {
   const handleSubmitForm = async (e) => {
     e.preventDefault();
     setValidationsErrors([]);
-
-    // validates form values in backend
-    const validation = await validateCoordinates({
+    
+    const validation = await validateCoordinates({ // validates form values in backend
       lng: parseFloat(formValues.lng),
       lat: parseFloat(formValues.lat),
       name: formValues.name
@@ -72,7 +69,7 @@ export default function Map(props) {
     return;
   };
 
-  // handler for Enter keypress event, will trigger a hidden submit button which calls handleFormSubmit
+  // trigger submit button click on form "Enter" event
   const handleFormKeypressEvent = async () => {
     let form = document.querySelector("#marker-form");
     form?.addEventListener("keypress", async (e) => {
@@ -83,7 +80,7 @@ export default function Map(props) {
       } else return
     }, false);
   };
-  
+
   useEffect(() => {
     if (map.current) return;
     map.current = new maplibregl.Map({
@@ -102,23 +99,62 @@ export default function Map(props) {
     });
 
     map.current.addControl(draw, 'top-left');
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-left');
+    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-    map.current.on('draw.create', newDraw);
+    map.current.on('draw.create', (e) => {
+      newDraw(e);
+      storePolygonData(e);
+    });
     map.current.on('draw.delete', newDraw);
     map.current.on('draw.update', newDraw);
-    map.current.on('load', seedInitialMarkers);
+    map.current.on('load', (e) => {
+      seedInitialMarkers();
+      seedPolygons();
+    });
+
+    function storePolygonData (e) {
+      if (e?.type === 'draw.create') {
+        const localPoly = localPolygons?.length > 0 ? localPolygons : [];
+        localPoly.push(e.features[0]);
+        localStorage.setItem('C3DGL-polygons', JSON.stringify(localPoly));
+        dispatch(mapActions.addPolygon(e.features[0]));
+        setLocalpolygons(localPoly);
+      }
+    };
 
     function newDraw(e) {
       const data = draw.getAll();
       console.log("data:", data);
     };
 
-    // fetches initial locations, creates markers, saves them to redux, and adds them to the map
+    // fetches initial locations, creates markers, saves them to redux, and adds them to map
     async function seedInitialMarkers() {
       const initialLocations = await getInitialLocations();
       initialLocations?.forEach((location) => {
         addMarkerToMap(location);
+      });
+    };
+
+    // retrieves local state polygons and adds to map
+    function seedPolygons() {
+      localPolygons?.forEach((polygon) => {
+        map.current?.addSource(polygon.id, {
+          "type": "geojson",
+          "data": {
+            "type": polygon.type,
+            "geometry": polygon.geometry,
+          },
+        });
+        map.current?.addLayer({
+          "id": polygon.id,
+          "type": "fill",
+          "source": polygon.id, // reference the data source
+          "layout": {},
+          "paint": {
+            "fill-color": "#0080ff",
+            "fill-opacity": 0.5,
+          },
+        });
       });
     };
   
@@ -127,7 +163,6 @@ export default function Map(props) {
     }
   }, []);
   
-  // sets listener for form submission on "Enter" keypress event
   useEffect(() => {
     handleFormKeypressEvent();
 
