@@ -1,19 +1,18 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const logger = require('morgan')
 const cors = require('cors');
 const path = require('path');
 const app = express();
+const { 
+  getLocations,
+  addLocation,
+  getPolygons,
+  addPolygon,
+  validateCoordinates 
+} = require('./controllers');
 
-const { getLocations, addLocation, getPolygons, addPolygon, validateCoordinates } = require('./controllers');
-
-app.use(cors({
-  'Access-Control-Allow-Methods': '*',
-  "methods": "OPTIONS,GET,HEAD,PUT,PATCH,POST,DELETE"
-}));
-
-app.use(logger('dev'))
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -51,10 +50,9 @@ app.post('/validate', validateCoordinates);
 
 app.use(express.static(path.resolve(__dirname, '..', 'build')));
 
-app.get('*', (req, res) => {
+app.get('/', (req, res) => {
   res.sendFile(path.resolve(__dirname, '..', 'build', 'index.html'));
 });
-
 
 const portNumber = process.env.PORT || 3001;
 

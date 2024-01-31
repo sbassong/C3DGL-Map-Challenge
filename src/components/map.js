@@ -26,7 +26,7 @@ export default function Map(props) {
   const [style] = useState('https://devtileserver.concept3d.com/styles/c3d_default_style/style.json');
   const [zoom] = useState(3);
   const [formValues, setFormValues] = useState(formInitialState);
-  const [validationErrors, setValidationsErrors] = useState([]);;
+  const [validationErrors, setValidationsErrors] = useState([]);
 
   // const storedLocations = useSelector((state) => state.locations);
   // const storedPolygons = useSelector((state) => state.polygons);
@@ -44,6 +44,7 @@ export default function Map(props) {
   };
   
   const handleFormChange = (e) => setFormValues({ ...formValues, [e.target.name]: e.target.value });
+
   const handleSubmitForm = async (e) => {
     e.preventDefault();
     setValidationsErrors([]);
@@ -65,7 +66,7 @@ export default function Map(props) {
       await addMarkerToMap(markerLocationObject);
       await addLocationToDynamo(markerLocationObject);
       map.current.flyTo({
-        center: [validation.payload?.lng, validation.payload?.lat], // or [lat, lng] as per req? would not center on marker if so.
+        center: [validation.payload?.lng, validation.payload?.lat],
         zoom,
         speed: 0.7
       });
@@ -84,7 +85,7 @@ export default function Map(props) {
         const hiddenSubmitButton = document.querySelector(".hidden-submit-button");
         hiddenSubmitButton.click();
       } else return;
-    }, false);
+    });
   };
 
   useEffect(() => {
@@ -126,8 +127,8 @@ export default function Map(props) {
     // fetches initial locations, creates markers, saves them to redux, and adds them to map
     async function seedInitialMarkers() {
       const initialLocations = await getInitialLocationsFromDynamo();
-      initialLocations?.forEach(async (location) => {
-        await addMarkerToMap(location);
+      initialLocations?.forEach((location) => {
+        addMarkerToMap(location);
       });
     };
 
@@ -173,9 +174,7 @@ export default function Map(props) {
 
     return () => {
       let form = document.querySelector("#marker-form");
-      form?.removeEventListener("keypress", async (e) => {
-          console.log('removed listener');
-      }, false);
+      form?.removeEventListener("keypress", handleFormKeypressEvent);
     }
   }, []);
 

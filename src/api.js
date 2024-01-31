@@ -1,16 +1,15 @@
 
 import Axios from 'axios';
 
-// export const BASE_URL = process.env.NODE_ENV === 'production'
-//   ? `${window.location.origin}`
-//   : 'http://localhost:3001';
+export const BASE_URL = process.env.NODE_ENV === 'production'
+  ? `${window.location.origin}`
+  : 'http://127.0.0.1:3001';
 
-const Api = Axios.create({ baseURL: 'https://young-woodland-57126-82594224755e.herokuapp.com' });
+const Api = Axios.create({ baseURL: BASE_URL });
 
 export const getInitialLocationsFromDynamo = async() => {
   try {
     const res = await Api.get('/locations');
-        console.log('herokucall ->>', res)
     return res.data.locations;
   } catch (error) {
     throw error
@@ -37,7 +36,6 @@ export const getPolygonsFromDynamo = async() => {
 
 export const addPolygonToDynamo = async(polygon) => {
   try {
-    console.log(polygon)
     const res = await Api.post("/addpolygon", polygon);
     return res.data;
   } catch (error) {
