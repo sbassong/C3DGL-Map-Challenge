@@ -1,11 +1,18 @@
 
 import Axios from 'axios';
 
-// export const BASE_URL = process.env.NODE_ENV === 'production'
-//   ? `https://c3d-code-challenge-6747da207e29.herokuapp.com/`
-//   : 'http://127.0.0.1:3001';
+export const BASE_URL = process.env.NODE_ENV === 'production'
+  ? `${window.location.origin}`
+  : 'http://127.0.0.1:3001';
 
-const Api = Axios.create({ baseURL: `https://c3d-code-challenge-6747da207e29.herokuapp.com` });
+const Api = Axios.create({ 
+  baseURL: BASE_URL,
+  proxy: {
+    protocol: 'https',
+    host: '127.0.0.1',
+    port: 3001,
+  },
+});
 
 export const getInitialLocationsFromDynamo = async() => {
   try {
