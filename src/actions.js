@@ -1,14 +1,8 @@
-const addMarkerLocation = (location) => {
+export const storeMarkerLocation = (location) => {
   return { type: "ADD_LOCATION", payload: location};
 } ;
 
-const addPolygon = (polygon) => {
+export const storePolygonGeojson = (polygon) => {
   return { type: "ADD_POLYGON", payload: polygon};
 };
 
-const mapActions = {
-  addMarkerLocation,
-  addPolygon
-};
-
-export default  mapActions
