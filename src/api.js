@@ -2,7 +2,7 @@
 import Axios from 'axios';
 
 export const BASE_URL = process.env.NODE_ENV === 'production'
-  ? `${window.location.origin}/`
+  ? `${window.location.origin}`
   : 'http://127.0.0.1:3001';
 
 const Api = Axios.create({ baseURL: BASE_URL });
@@ -36,9 +36,7 @@ export const getPolygonsFromDynamo = async() => {
 
 export const addPolygonToDynamo = async(polygon) => {
   try {
-    console.log(polygon)
     const res = await Api.post("/addpolygon", polygon);
-    console.log(res.data)
     return res.data;
   } catch (error) {
     throw error

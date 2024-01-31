@@ -1,9 +1,16 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const path = require('path');
 const cors = require('cors');
+const path = require('path');
 const app = express();
-const { getLocations, addLocation, getPolygons, addPolygon, validateCoordinates } = require('./controllers');
+const { 
+  getLocations,
+  addLocation,
+  getPolygons,
+  addPolygon,
+  validateCoordinates 
+} = require('./controllers');
 
 app.use(cors());
 app.use(bodyParser.json());
