@@ -9,8 +9,10 @@ const app = express();
 const { getLocations, addLocation, getPolygons, addPolygon, validateCoordinates } = require('./controllers');
 
 app.use(cors({
-  'Access-Control-Allow-Methods': 'OPTIONS, GET, POST'
+  'Access-Control-Allow-Methods': '*',
+  "methods": "OPTIONS,GET,HEAD,PUT,PATCH,POST,DELETE"
 }));
+
 app.use(logger('dev'))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
