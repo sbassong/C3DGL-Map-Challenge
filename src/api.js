@@ -5,14 +5,7 @@ export const BASE_URL = process.env.NODE_ENV === 'production'
   ? `${window.location.origin}`
   : 'http://127.0.0.1:3001';
 
-const Api = Axios.create({ 
-  baseURL: BASE_URL,
-  proxy: {
-    protocol: 'https',
-    host: '127.0.0.1',
-    port: 3001,
-  },
-});
+const Api = Axios.create({ baseURL: BASE_URL });
 
 export const getInitialLocationsFromDynamo = async() => {
   try {
