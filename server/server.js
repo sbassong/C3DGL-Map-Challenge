@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -41,11 +42,20 @@ app.get('/polygons', getPolygons);
 app.post('/addpolygon', addPolygon);
 app.post('/validate', validateCoordinates);
 
-app.use(express.static(path.resolve(__dirname, '..', 'build')));
 
-app.get('/', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '..', 'build', 'index.html'));
-});
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.resolve(__dirname, '..', 'build')));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'build', 'index.html'));
+  })
+} else {
+  app.use(express.static(path.resolve(__dirname, '..', 'build')));
+  
+  app.get('/', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '..', 'build', 'index.html'));
+  });
+
+}
 
 const portNumber = process.env.PORT || 3001;
 
