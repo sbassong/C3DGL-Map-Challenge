@@ -1,11 +1,11 @@
 
 import Axios from 'axios';
 
-export const BASE_URL = process.env.NODE_ENV === 'production'
-  ? `${window.location.origin}`
-  : 'http://localhost:3001';
+// export const BASE_URL = process.env.NODE_ENV === 'production'
+//   ? `${window.location.origin}`
+//   : 'http://localhost:3001';
 
-const Api = Axios.create({ baseURL: BASE_URL });
+const Api = Axios.create({ baseURL: 'https://young-woodland-57126-82594224755e.herokuapp.com' });
 
 export const getInitialLocationsFromDynamo = async() => {
   try {
