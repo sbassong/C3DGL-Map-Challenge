@@ -25,7 +25,7 @@
   "scripts": {
     "server": "node server/server.js",
     "start": "react-scripts start",
-    "build": "npm run server && react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
