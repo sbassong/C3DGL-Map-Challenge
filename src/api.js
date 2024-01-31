@@ -5,7 +5,7 @@ import Axios from 'axios';
 //   ? `https://c3d-code-challenge-6747da207e29.herokuapp.com/`
 //   : 'http://127.0.0.1:3001';
 
-const Api = Axios.create({ baseURL: `https://c3d-code-challenge-6747da207e29.herokuapp.com/` });
+const Api = Axios.create({ baseURL: `https://c3d-code-challenge-6747da207e29.herokuapp.com` });
 
 export const getInitialLocationsFromDynamo = async() => {
   try {
