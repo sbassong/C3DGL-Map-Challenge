@@ -10,6 +10,7 @@ const Api = Axios.create({ baseURL: BASE_URL });
 export const getInitialLocationsFromDynamo = async() => {
   try {
     const res = await Api.get('/locations');
+        console.log('herokucall ->>', res)
     return res.data.locations;
   } catch (error) {
     throw error
@@ -38,7 +39,6 @@ export const addPolygonToDynamo = async(polygon) => {
   try {
     console.log(polygon)
     const res = await Api.post("/addpolygon", polygon);
-    console.log(res.data)
     return res.data;
   } catch (error) {
     throw error
