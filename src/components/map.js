@@ -4,11 +4,17 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './map.css';
 import MapboxDraw from "@mapbox/mapbox-gl-draw";
-import { getInitialLocations, validateCoordinates } from '../api.js';
-import mapActions from '../actions.js';
+import { 
+  getInitialLocationsFromDynamo,
+  validateCoordinates,
+  addLocationToDynamo,
+  getPolygonsFromDynamo,
+  addPolygonToDynamo, 
+} from '../api.js';
+import { storeMarkerLocation, storePolygonGeojson } from '../actions.js';
 
 const formInitialState = { lng: '', lat: '', name: ''};
-const generateRandomStringID = () => {
+const generateRandomStringID = () => { // unique ids for polygons and locations
   return Math.random().toString(36).substring(2, 10);
 };
 
@@ -20,15 +26,14 @@ export default function Map(props) {
   const [style] = useState('https://devtileserver.concept3d.com/styles/c3d_default_style/style.json');
   const [zoom] = useState(3);
   const [formValues, setFormValues] = useState(formInitialState);
-  const [validationErrors, setValidationsErrors] = useState([]);
-  const [localPolygons, setLocalpolygons] = useState(JSON.parse(localStorage.getItem("C3DGL-polygons")));
+  const [validationErrors, setValidationsErrors] = useState([]);;
 
   // const storedLocations = useSelector((state) => state.locations);
   // const storedPolygons = useSelector((state) => state.polygons);
   const dispatch = useDispatch();
 
   const addMarkerToMap = async (locationObj) => {
-    dispatch(mapActions.addMarkerLocation(locationObj));
+    dispatch(storeMarkerLocation(locationObj));
     const popup = new maplibregl.Popup()
       .setMaxWidth("fit-content")
       .setHTML(`<h4>${locationObj.name}</h4>`);
@@ -58,6 +63,7 @@ export default function Map(props) {
         name: validation.payload?.name
       };
       await addMarkerToMap(markerLocationObject);
+      await addLocationToDynamo(markerLocationObject);
       map.current.flyTo({
         center: [validation.payload?.lng, validation.payload?.lat], // or [lat, lng] as per req? would not center on marker if so.
         zoom,
@@ -77,7 +83,7 @@ export default function Map(props) {
         e.preventDefault();
         const hiddenSubmitButton = document.querySelector(".hidden-submit-button");
         hiddenSubmitButton.click();
-      } else return
+      } else return;
     }, false);
   };
 
@@ -101,26 +107,16 @@ export default function Map(props) {
     map.current.addControl(draw, 'top-left');
     map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
-    map.current.on('draw.create', (e) => {
+    map.current.on('draw.create', async (e) => {
       newDraw(e);
-      storePolygonData(e);
+      await storePolygonData(e);
     });
     map.current.on('draw.delete', newDraw);
     map.current.on('draw.update', newDraw);
-    map.current.on('load', (e) => {
-      seedInitialMarkers();
-      seedPolygons();
+    map.current.on('load', async (e) => {
+      await seedInitialMarkers();
+      await seedPolygons();
     });
-
-    function storePolygonData (e) {
-      if (e?.type === 'draw.create') {
-        const localPoly = localPolygons?.length > 0 ? localPolygons : [];
-        localPoly.push(e.features[0]);
-        localStorage.setItem('C3DGL-polygons', JSON.stringify(localPoly));
-        dispatch(mapActions.addPolygon(e.features[0]));
-        setLocalpolygons(localPoly);
-      }
-    };
 
     function newDraw(e) {
       const data = draw.getAll();
@@ -129,15 +125,16 @@ export default function Map(props) {
 
     // fetches initial locations, creates markers, saves them to redux, and adds them to map
     async function seedInitialMarkers() {
-      const initialLocations = await getInitialLocations();
+      const initialLocations = await getInitialLocationsFromDynamo();
       initialLocations?.forEach((location) => {
         addMarkerToMap(location);
       });
     };
 
-    // retrieves local state polygons and adds to map
-    function seedPolygons() {
-      localPolygons?.forEach((polygon) => {
+    // retrieves DynamoDB polygons and adds them to map
+    async function seedPolygons() {
+      const initialPolygons = await getPolygonsFromDynamo();
+      initialPolygons?.forEach((polygon) => {
         map.current?.addSource(polygon.id, {
           "type": "geojson",
           "data": {
@@ -156,6 +153,14 @@ export default function Map(props) {
           },
         });
       });
+    };
+
+    async function storePolygonData (e) {
+      if (e?.type === 'draw.create') {
+        const polygon = e?.features[0];
+        dispatch(storePolygonGeojson(polygon));
+        await addPolygonToDynamo(polygon);
+      }
     };
   
     return () => {
