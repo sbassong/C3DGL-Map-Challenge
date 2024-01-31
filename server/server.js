@@ -1,12 +1,17 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const path = require('path');
+const logger = require('morgan')
 const cors = require('cors');
+const path = require('path');
 const app = express();
+
 const { getLocations, addLocation, getPolygons, addPolygon, validateCoordinates } = require('./controllers');
 
-app.use(cors());
+app.use(cors({
+  'Access-Control-Allow-Methods': 'OPTIONS, GET, POST'
+}));
+app.use(logger('dev'))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 

@@ -47,6 +47,7 @@ const getLocations = async function (req, res) {
 			});
     } else {
 			// filter and parse the returned data
+						console.log(res.header())
 			const locations = [];
 			data.Items.forEach((item) => {
 				if (item['item-type'] === 'location') {
