@@ -126,8 +126,8 @@ export default function Map(props) {
     // fetches initial locations, creates markers, saves them to redux, and adds them to map
     async function seedInitialMarkers() {
       const initialLocations = await getInitialLocationsFromDynamo();
-      initialLocations?.forEach((location) => {
-        addMarkerToMap(location);
+      initialLocations?.forEach(async (location) => {
+        await addMarkerToMap(location);
       });
     };
 

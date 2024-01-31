@@ -2,8 +2,8 @@
 import Axios from 'axios';
 
 export const BASE_URL = process.env.NODE_ENV === 'production'
-  ? `${window.location.origin}/`
-  : 'http://127.0.0.1:3001';
+  ? `${window.location.origin}`
+  : 'http://localhost:3001';
 
 const Api = Axios.create({ baseURL: BASE_URL });
 
