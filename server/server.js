@@ -9,7 +9,6 @@ const {
   addLocation,
   getPolygons,
   addPolygon,
-  validateCoordinates 
 } = require('./controllers');
 
 app.use(cors());
@@ -18,12 +17,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // // Obsolete, initialLocations now in DynamoDB
 // const initialLocations = [
-//   {
-//     id: 'id1',
-//     name: 'Denver',
-//     lat: 39.742043,
-//     lng: -104.991531,
-//   },
+  // {
+  //   id: 'id1',
+  //   name: 'Denver',
+  //   lat: 39.742043,
+  //   lng: -104.991531,
+  // },
 //   {
 //     id: 'id2',
 //     name: 'LA',
@@ -46,7 +45,7 @@ app.get('/locations', getLocations);
 app.post('/addlocation', addLocation);
 app.get('/polygons', getPolygons);
 app.post('/addpolygon', addPolygon);
-app.post('/validate', validateCoordinates);
+// app.post('/validate', validateCoordinates);
 
 app.use(express.static(path.resolve(__dirname, '..', 'build')));
 
