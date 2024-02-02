@@ -36,9 +36,7 @@ export default function Map(props) {
   const handleFormKeypressEvent = async () => {
     formRef.current?.addEventListener("keypress", async (e) => {
       if (e?.key === "Enter" || e?.charCode === 13) {
-        console.log(e)
         e.preventDefault();
-        console.log(buttonRef.current)
         buttonRef.current?.click();
       } else return;
     });
@@ -48,24 +46,21 @@ export default function Map(props) {
     e.preventDefault();
     setValidationsErrors([]);
     
-    console.log(formValues)
     const response = await ValidateLocationAndAddToDynamo({ // validates form values in backend
-      lng: parseFloat(formValues.lng),
-      lat: parseFloat(formValues.lat),
-      name: formValues.name
+      lng: parseFloat(formValues?.lng),
+      lat: parseFloat(formValues?.lat),
+      name: formValues?.name
     });
-
-    if (!response?.success && response?.payload.length > 0) setValidationsErrors(response?.errors);
+    if (!response?.success && response.payload?.length > 0) setValidationsErrors(response.payload);
     else if (response?.success && response?.payload) {
-      await seedMarkerToMap(response?.payload);
+      await seedMarkerToMap(response.payload);
       map.current.flyTo({
-        center: [response.payload?.lng, response.payload?.lat],
+        center: [response.payload.lng, response.payload.lat],
         zoom,
         speed: 0.7
       });
     } else return;
   };
-
 
   const seedMarkerToMap = async (location) => {
     dispatch(storeMarkerLocation(location));
@@ -141,17 +136,16 @@ export default function Map(props) {
 
     async function storePolygonData (e) {
       if (e?.type === 'draw.create') {
-        const polygon = e?.features[0];
+        const polygon = e.features[0];
         dispatch(storePolygonGeojson(polygon));
         await addPolygonToDynamo(polygon);
       }
     };
     
-    handleFormKeypressEvent()
-    
+    handleFormKeypressEvent();
     return () => {
       map.current.remove();
-      formRef.current?.removeEventListener("keypress", handleFormKeypressEvent);
+      formRef.current.removeEventListener("keypress", handleFormKeypressEvent);
     }
   }, []);
 
@@ -164,7 +158,7 @@ export default function Map(props) {
         formRef={formRef}
         buttonRef={buttonRef}
         formValues={formValues}
-        handleFormChange={(e) => handleFormChange(e)}
+        handleFormChange={handleFormChange}
         handleSubmitForm={handleSubmitForm}
         validationErrors={validationErrors}
       />

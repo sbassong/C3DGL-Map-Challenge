@@ -14,10 +14,8 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 
 const addLocation = async function (req, res) {
-	const { formValues } = req.body;
-	console.log(formValues)
-	const validationStatus = validateFormValues(formValues);
-
+	const formValues  = { ...req.body };
+	const validationStatus = await validateFormValues(formValues);
 	if (validationStatus?.isValid) {
 		const command = new PutCommand({
 			TableName: tableName,
@@ -41,7 +39,7 @@ const addLocation = async function (req, res) {
 				});
 			}
 		});
-	} else {
+	} else if (!validationStatus?.isValid) {
 		res.send({
 			success: false,
 			payload: validationStatus?.errors
@@ -50,7 +48,7 @@ const addLocation = async function (req, res) {
 };
 
 const addPolygon = async function (req, res) {
-	const { polygon } = req.body;
+	const polygon = { ...req.body };
 	const command = new PutCommand({
 		TableName: tableName,
 		Item: {
@@ -80,16 +78,16 @@ const getItems = async function (req, res) {
 	const command = new ScanCommand({
     TableName: tableName,
   });
-
+	console.log(docClient)
 	// scans all the items in the provided table
   docClient.send(command, function (err, data) {
     if (err) {
+			console.log(err)
 			res.send({
 				success: false,
 				message: err
 			});
     } else {
-			console.log(data.Items)
 			res.send({
 				success: true,
 				items: data.Items
@@ -105,7 +103,7 @@ const generateRandomStringID = () => { // unique ids for polygons and locations
 const validateLng = (lng) => Number.isFinite(lng) && Math.abs(lng) <= 180; // values should be floats between -180 and 180
 const validateLat = (lat) => Number.isFinite(lat) && Math.abs(lat) <= 90; // values should be floats between -90 and 90
 
-function validateFormValues ({lng, lat, name}) {
+async function validateFormValues ({lng, lat, name}) {
 	const errors = [];
 	const id = generateRandomStringID();
 	const isLngValid = validateLng(lng);

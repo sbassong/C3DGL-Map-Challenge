@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Form({formRef, submitRef, formValues, handleFormChange, handleSubmitForm}) {
+export default function Form({formRef, buttonRef, formValues, handleFormChange, handleSubmitForm}) {
   return (
     <form 
       id='marker-form'
@@ -42,7 +42,7 @@ export default function Form({formRef, submitRef, formValues, handleFormChange, 
         </label>
       </div>
       <button
-        ref={submitRef}
+        ref={buttonRef}
         className='hidden-submit-button'
         style={{display: "none"}}
         type='submit'
