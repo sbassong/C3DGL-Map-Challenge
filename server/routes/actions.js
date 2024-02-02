@@ -1,17 +1,13 @@
+require('dotenv').config();
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, PutCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
-const { fromIni } = require('@aws-sdk/credential-provider-ini');
+const { fromEnv } = require("@aws-sdk/credential-providers"); // CommonJS import
 
 const tableName = 'C3DMC-dynamodb';
 const client = new DynamoDBClient( {
-	credentials: fromIni({
-    filepath: ".aws/credentials.ini",
-		profile: 'default'
-  }),
-	region: 'us-west-2',
+	credentials: fromEnv(),
 });
 const docClient = DynamoDBDocumentClient.from(client);
-
 
 const addLocation = async function (req, res) {
 	const formValues  = { ...req.body };
