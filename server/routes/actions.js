@@ -1,7 +1,6 @@
-require('dotenv').config();
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, PutCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
-const { fromEnv } = require("@aws-sdk/credential-providers"); // CommonJS import
+const { fromEnv } = require("@aws-sdk/credential-providers");
 
 const tableName = 'C3DMC-dynamodb';
 const client = new DynamoDBClient( {
