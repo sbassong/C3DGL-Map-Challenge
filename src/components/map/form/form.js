@@ -14,7 +14,7 @@ export default function Form({formRef, buttonRef, formValues, handleFormChange, 
             name="lng"
             type="number"
             placeholder='-104.991531'
-            value={formValues.lng}
+            value={formValues?.lng}
             onChange={handleFormChange}
           />
         </label>
@@ -25,7 +25,7 @@ export default function Form({formRef, buttonRef, formValues, handleFormChange, 
             name="lat"
             type="number"
             placeholder='39.742043'
-            value={formValues.lat}
+            value={formValues?.lat}
             onChange={handleFormChange} 
           />
         </label>
@@ -36,7 +36,7 @@ export default function Form({formRef, buttonRef, formValues, handleFormChange, 
             name="name"
             type="text"
             placeholder='Denver'
-            value={formValues.name}
+            value={formValues?.name}
             onChange={handleFormChange} 
           />
         </label>

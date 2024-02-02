@@ -46,8 +46,8 @@ export default function Map(props) {
     e.preventDefault();
     setValidationsErrors([]);
     
-    const response = await ValidateLocationAndAddToDynamo({ // validates form values in backend
-      lng: parseFloat(formValues?.lng),
+    const response = await ValidateLocationAndAddToDynamo({
+      lng: parseFloat(formValues?.lng), // parsing since input value is a string
       lat: parseFloat(formValues?.lat),
       name: formValues?.name
     });
@@ -66,7 +66,7 @@ export default function Map(props) {
     dispatch(storeMarkerLocation(location));
     const marker = new maplibregl.Marker()
       .setLngLat([location.lng, location.lat])
-      .setPopup(new maplibregl.Popup().setText(location.name)) // adds popup
+      .setPopup(new maplibregl.Popup().setText(location.name))
       .addTo(map.current);
   };
 
