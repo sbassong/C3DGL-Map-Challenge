@@ -23,7 +23,7 @@ const addLocation = async function (req, res) {
 				'item': JSON.stringify(validationStatus?.location),
 				'type': 'location',
 			},
-			ReturnValues: 'ALL_OLD'
+			ReturnValues: 'ALL_OLD' // default is 'NONE', 'ALL_OLD ensures item entry is returned
 		});
 
 		docClient.send(command, function (err, data) {
@@ -73,13 +73,11 @@ const addPolygon = async function (req, res) {
 	});
 };
 
-
 const getItems = async function (req, res) {
 	const command = new ScanCommand({
     TableName: tableName,
   });
 
-	// scans all the items in the provided table
   docClient.send(command, function (err, data) {
     if (err) {
 			res.send({
@@ -96,15 +94,15 @@ const getItems = async function (req, res) {
 };
 
 // helpers
-const generateRandomStringID = () => { // unique ids for polygons and locations
+const generateRandomStringID = () => {
   return Math.random().toString(36).substring(2, 10);
 };
-const validateLng = (lng) => Number.isFinite(lng) && Math.abs(lng) <= 180; // values should be floats between -180 and 180
-const validateLat = (lat) => Number.isFinite(lat) && Math.abs(lat) <= 90; // values should be floats between -90 and 90
+const validateLng = (lng) => Number.isFinite(lng) && Math.abs(lng) <= 180;
+const validateLat = (lat) => Number.isFinite(lat) && Math.abs(lat) <= 90;
 
 async function validateFormValues ({lng, lat, name}) {
 	const errors = [];
-	const id = generateRandomStringID();
+	const id = generateRandomStringID(); // dynamodb will need item to have a unique ID to avoid store duplicates
 	const isLngValid = validateLng(lng);
 	const isLatValid = validateLat(lat);
 
