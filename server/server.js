@@ -3,52 +3,17 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
+
+const AppRouter = require('./routes/AppRouter.js');
 const app = express();
-const { 
-  getLocations,
-  addLocation,
-  getPolygons,
-  addPolygon,
-} = require('./controllers');
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// // Obsolete, initialLocations now in DynamoDB
-// const initialLocations = [
-  // {
-  //   id: 'id1',
-  //   name: 'Denver',
-  //   lat: 39.742043,
-  //   lng: -104.991531,
-  // },
-//   {
-//     id: 'id2',
-//     name: 'LA',
-//     lat: 34.052235,
-//     lng: -118.243683,
-//   },
-//   {
-//     id: 'id3',
-//     name: 'Boston',
-//     lat: 42.364506,
-//     lng: -71.038887,
-//   },
-// ];
-
-// app.locals.idIndex = 3;
-// app.locals.locations = initialLocations;
-
-// routes
-app.get('/locations', getLocations);
-app.post('/addlocation', addLocation);
-app.get('/polygons', getPolygons);
-app.post('/addpolygon', addPolygon);
-// app.post('/validate', validateCoordinates);
+app.use('/', AppRouter);
 
 app.use(express.static(path.resolve(__dirname, '..', 'build')));
-
 app.get('/', (req, res) => {
   res.sendFile(path.resolve(__dirname, '..', 'build', 'index.html'));
 });
