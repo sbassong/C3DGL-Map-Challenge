@@ -78,11 +78,10 @@ const getItems = async function (req, res) {
 	const command = new ScanCommand({
     TableName: tableName,
   });
-	console.log(docClient)
+
 	// scans all the items in the provided table
   docClient.send(command, function (err, data) {
     if (err) {
-			console.log(err)
 			res.send({
 				success: false,
 				message: err
