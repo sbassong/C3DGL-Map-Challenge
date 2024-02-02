@@ -15,6 +15,7 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 const addLocation = async function (req, res) {
 	const { formValues } = req.body;
+	console.log(formValues)
 	const validationStatus = validateFormValues(formValues);
 
 	if (validationStatus?.isValid) {
@@ -88,13 +89,10 @@ const getItems = async function (req, res) {
 				message: err
 			});
     } else {
-			const locations = data.Items.filter((item) => (item['type'] === 'location'));
-			const polygons = data.Items.filter((item) => (item['type'] === 'polygon'));
-
+			console.log(data.Items)
 			res.send({
 				success: true,
-				polygons, 
-				locations
+				items: data.Items
 			});
     }
   });
