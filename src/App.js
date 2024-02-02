@@ -1,6 +1,6 @@
 import React from 'react';
-import Map from './components/map.js';
-import Navbar from './components/navbar.js';
+import Map from './components/map/map.js';
+import Navbar from './components/navbar/navbar.js';
 import './App.css';
 
 function App() {
