@@ -11,7 +11,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use('/', AppRouter);
+app.use('/api', AppRouter);
 
 app.use(express.static(path.resolve(__dirname, '..', 'build')));
 app.get('/', (req, res) => {
